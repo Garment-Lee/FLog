@@ -17,8 +17,10 @@ public class FLog {
 
     private static SimpleDateFormat mDateFormat = new SimpleDateFormat("yyyy-MM-dd-HH:mm:ss");
 
+    private static SimpleDateFormat mFileDataFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+
     /**默认最大的文件大小10M*/
-    private static int DEFAULT_MAX_FILE_SIZE = 10 * 1024 * 1024;
+    private static int DEFAULT_MAX_FILE_SIZE = 2  * 1024;
 
     /**默认的文件保存目录*/
     private static String DEFAULT_FILE_DIRECTORY = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "FLog";
@@ -144,17 +146,26 @@ public class FLog {
      */
     private static String getLatestFileName(String fileDirectory) {
         File file = new File(fileDirectory);
-        int latestFileNum = 0;
+        File latestFile = null;
+        int fileTime = 0;
         if (file.exists()) {
             File[] files = file.listFiles();
             for (File file1 : files) {
-                String fileNum = file1.getName().substring(4);
-                if (Integer.valueOf(fileNum) > latestFileNum) {
-                    latestFileNum = Integer.valueOf(fileNum);
+                if (file1.lastModified() > fileTime){
+                    latestFile = file1;
                 }
+//                String[] fileName = file1.getName().split(".");
+//                String fileNum = fileName[0].substring(4);
+//                if (Integer.valueOf(fileNum) > latestFileNum) {
+//                    latestFileNum = Integer.valueOf(fileNum);
+//                }
             }
         }
-        return fileDirectory + File.separator + "flog" + latestFileNum + ".txt";
+        if (latestFile != null){
+            return latestFile.getAbsolutePath();
+        } else {
+            return fileDirectory + File.separator + mFileDataFormat.format(new Date()).toString() + "flog" + ".txt";
+        }
     }
 
     private static void saveToFile(String tag, String msg) {
@@ -167,12 +178,15 @@ public class FLog {
                     saveFile.getParentFile().mkdirs();
                 }
                 saveFile.createNewFile();
+                mAbsoluteFileName = saveFile.getName();
             } else if (saveFile.length() >= DEFAULT_MAX_FILE_SIZE){
-                generateNewFile(mSaveFileDirectory);
+                File newFile = generateNewFile(mSaveFileDirectory);
+                mAbsoluteFileName = newFile.getAbsolutePath();
             }
             FileOutputStream fileOutputStream = new FileOutputStream(saveFile, true);
             fileOutputStream.write(mDateFormat.format(new Date()).getBytes());
             fileOutputStream.write(outputBytes);
+            fileOutputStream.write("\n".getBytes());
             fileOutputStream.flush();
             fileOutputStream.close();
         } catch (IOException e) {
@@ -187,18 +201,18 @@ public class FLog {
      * @throws IOException
      */
     private static File generateNewFile(String fileDirectory) throws IOException {
-        File file = new File(fileDirectory);
-        int latestFileNum = 0;
-        if (file.exists()) {
-            File[] files = file.listFiles();
-            for (File file1 : files) {
-                String fileNum = file1.getName().substring(4);
-                if (Integer.valueOf(fileNum) > latestFileNum) {
-                    latestFileNum = Integer.valueOf(fileNum);
-                }
-            }
-        }
-        File newFile = new File(fileDirectory + File.separator + "flog" + (latestFileNum + 1) + ".txt");
+//        File file = new File(fileDirectory);
+//        int latestFileNum = 0;
+//        if (file.exists()) {
+//            File[] files = file.listFiles();
+//            for (File file1 : files) {
+//                String fileNum = file1.getName().substring(4);
+//                if (Integer.valueOf(fileNum) > latestFileNum) {
+//                    latestFileNum = Integer.valueOf(fileNum);
+//                }
+//            }
+//        }
+        File newFile = new File(fileDirectory + File.separator + mFileDataFormat.format(new Date()).toString() + "flog" + ".txt");
         newFile.createNewFile();
         return newFile;
     }
