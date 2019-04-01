@@ -150,15 +150,12 @@ public class FLog {
         int fileTime = 0;
         if (file.exists()) {
             File[] files = file.listFiles();
-            for (File file1 : files) {
-                if (file1.lastModified() > fileTime){
-                    latestFile = file1;
+            if (files != null){
+                for (File file1 : files) {
+                    if (file1.lastModified() > fileTime){
+                        latestFile = file1;
+                    }
                 }
-//                String[] fileName = file1.getName().split(".");
-//                String fileNum = fileName[0].substring(4);
-//                if (Integer.valueOf(fileNum) > latestFileNum) {
-//                    latestFileNum = Integer.valueOf(fileNum);
-//                }
             }
         }
         if (latestFile != null){
@@ -169,16 +166,18 @@ public class FLog {
     }
 
     private static void saveToFile(String tag, String msg) {
+        Log.i("FLog","saveToFile:" + mAbsoluteFileName);
         File saveFile = new File(mAbsoluteFileName);
+       
         String[] logArr = getWrappedTagMsg(tag, msg);
         byte[] outputBytes = ("[" + logArr[0] + "]" + logArr[1]).getBytes();
         try {
             if (!saveFile.exists()) {
-                if (!saveFile.getParentFile().exists()) {
+                if (saveFile.getParentFile() != null && !saveFile.getParentFile().exists()) {
                     saveFile.getParentFile().mkdirs();
                 }
                 saveFile.createNewFile();
-                mAbsoluteFileName = saveFile.getName();
+                mAbsoluteFileName = saveFile.getAbsolutePath();
             } else if (saveFile.length() >= DEFAULT_MAX_FILE_SIZE){
                 File newFile = generateNewFile(mSaveFileDirectory);
                 mAbsoluteFileName = newFile.getAbsolutePath();
@@ -201,17 +200,6 @@ public class FLog {
      * @throws IOException
      */
     private static File generateNewFile(String fileDirectory) throws IOException {
-//        File file = new File(fileDirectory);
-//        int latestFileNum = 0;
-//        if (file.exists()) {
-//            File[] files = file.listFiles();
-//            for (File file1 : files) {
-//                String fileNum = file1.getName().substring(4);
-//                if (Integer.valueOf(fileNum) > latestFileNum) {
-//                    latestFileNum = Integer.valueOf(fileNum);
-//                }
-//            }
-//        }
         File newFile = new File(fileDirectory + File.separator + mFileDataFormat.format(new Date()).toString() + "flog" + ".txt");
         newFile.createNewFile();
         return newFile;
