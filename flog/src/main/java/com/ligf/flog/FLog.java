@@ -20,7 +20,7 @@ public class FLog {
     private static SimpleDateFormat mFileDataFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 
     /**默认最大的文件大小10M*/
-    private static int DEFAULT_MAX_FILE_SIZE = 2  * 1024;
+    private static int DEFAULT_MAX_FILE_SIZE = 5 * 1024 * 1024;
 
     /**默认的文件保存目录*/
     private static String DEFAULT_FILE_DIRECTORY = Environment.getExternalStorageDirectory().getAbsolutePath() + File.separator + "FLog";
@@ -39,6 +39,8 @@ public class FLog {
 
     /**最大的日志文件大小*/
     private static int mMaxFileSize;
+
+    private static final String SUFFIX = ".java";
 
     public static void setShowLogFlag(boolean flag) {
         mShowLogFlag = flag;
@@ -208,8 +210,17 @@ public class FLog {
     private static String[] getWrappedTagMsg(String tag, String msg) {
         String[] stringArr = new String[2];
         StackTraceElement stackTraceElement = getTargetStackTraceElement();
+        String className = stackTraceElement.getClassName();
+        String[] classNameInfo = className.split("\\.");
+        if (classNameInfo.length > 0) {
+            className = classNameInfo[classNameInfo.length - 1] + SUFFIX;
+        }
+
+        if (className.contains("$")) {
+            className = className.split("\\$")[0] + SUFFIX;
+        }
         stringArr[0] = TextUtils.isEmpty(tag) ? stackTraceElement.getClassName() : tag;
-        stringArr[1] = "[ (" + stackTraceElement.getClassName() + ":" + stackTraceElement.getLineNumber() + ") #" + stackTraceElement.getMethodName() + "]" + msg;
+        stringArr[1] = "[ (" + className + ":" + stackTraceElement.getLineNumber() + ")#" + stackTraceElement.getMethodName() + "]" + msg;
         return stringArr;
     }
 
